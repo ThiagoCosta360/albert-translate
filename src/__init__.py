@@ -24,6 +24,7 @@ config = configparser.ConfigParser()
 project_id = ""
 client = None
 
+
 def initialize():
     loadConfig()
 
@@ -43,13 +44,15 @@ def initialize():
     else:
         try:
             if keyfile is not None:
-                client = api.TranslationServiceClient.from_service_account_file(keyfile)
+                client = api.TranslationServiceClient.from_service_account_file(
+                    keyfile)
             else:
                 client = api.TranslationServiceClient()
 
             parent = client.location_path(project_id, 'global')
         except Exception as err:
             critical(err)
+
 
 def loadConfig():
     global writeConfig
@@ -66,6 +69,7 @@ def loadConfig():
             info("Writing config file to {}".format(confPath))
             config.write(configFile)
 
+
 def addConfigOption(section, option, value=''):
     if not config.has_section(section):
         config.add_section(section)
@@ -76,6 +80,7 @@ def addConfigOption(section, option, value=''):
     global writeConfig
     config[section][option] = value
     writeConfig = True
+
 
 def handleQuery(query):
     if not query.isTriggered:
@@ -111,6 +116,7 @@ def handleQuery(query):
 
     return items
 
+
 def parseArgs(str):
     source = config.get('extension', 'source_lang', fallback='auto')
     target = config.get('extension', 'target_lang')
@@ -134,6 +140,7 @@ def parseArgs(str):
         source = "auto"
 
     return str, source, target
+
 
 def translate(str, source, target, query):
     try:
@@ -160,6 +167,7 @@ def translate(str, source, target, query):
 
     return makeItem(query, subtext=errmsg)
 
+
 def responseToItem(response, str, source, target, query):
     translation = response.translations[0]
     if source == "auto" and len(targets) > 1 and target == translation.detected_language_code:
@@ -169,19 +177,23 @@ def responseToItem(response, str, source, target, query):
         query, translation.translated_text,
         "Translated to {} from {}".format(
             lang.toName(target),
-            lang.toName(translation.detected_language_code if source == "auto" else source)
+            lang.toName(
+                translation.detected_language_code if source == "auto" else source)
         )
     )
     item.addAction(ClipAction("Copy to clipboard", item.text))
     item.addAction(UrlAction(
         "View in Google Translate",
-        "https://translate.google.com/#{}/{}/{}".format(source, target, quote_url(str, safe=''))
+        "https://translate.google.com/#{}/{}/{}".format(
+            source, target, quote_url(str, safe=''))
     ))
     return item
 
+
 def badConfigItem(query, text, subtext):
     item = makeItem(query, text, subtext)
-    item.addAction(ProcAction("Open extension config in your editor", ["xdg-open", confPath]))
+    item.addAction(ProcAction(
+        "Open extension config in your editor", ["xdg-open", confPath]))
     item.addAction(UrlAction("View installation instructions",
                              "https://github.com/dshoreman/albert-translate#installation"))
     item.addAction(UrlAction("Create a Google Cloud Platform Project",
@@ -190,12 +202,14 @@ def badConfigItem(query, text, subtext):
                              "https://console.cloud.google.com/apis/credentials/serviceaccountkey"))
     return item
 
+
 def badLanguageItem(query, lang):
     item = makeItem(query, "Translation failed",
                     "{} is not a valid language.".format(lang.upper()))
     item.addAction(UrlAction("Open list of support languages",
                              "https://cloud.google.com/translate/docs/languages"))
     return item
+
 
 def makeItem(query=None, text=__prettyname__, subtext=""):
     return Item(
@@ -205,6 +219,7 @@ def makeItem(query=None, text=__prettyname__, subtext=""):
         subtext=subtext,
         completion=query.rawString
     )
+
 
 class Lang:
     langPath = os.path.dirname(__file__) + "/languages.json"
@@ -224,5 +239,6 @@ class Lang:
 
     def toName(self, code):
         return self.languages.get(code)
+
 
 lang = Lang()
