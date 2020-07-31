@@ -181,12 +181,12 @@ def responseToItem(response, str, source, target, query):
                 translation.detected_language_code if source == "auto" else source)
         )
     )
-    item.addAction(ClipAction("Copy to clipboard", item.text))
     item.addAction(UrlAction(
         "View in Google Translate",
         "https://translate.google.com/#{}/{}/{}".format(
             source, target, quote_url(str, safe=''))
     ))
+    item.addAction(ClipAction("Copy to clipboard", item.text))
     return item
 
 
@@ -205,7 +205,7 @@ def badConfigItem(query, text, subtext):
 
 def badLanguageItem(query, lang):
     item = makeItem(query, "Translation failed",
-                    "{} is not a valid language.".format(lang.upper()))
+                    "{} is not a valid language.".format(lang))
     item.addAction(UrlAction("Open list of support languages",
                              "https://cloud.google.com/translate/docs/languages"))
     return item
